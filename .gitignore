@@ -1,32 +1,81 @@
-# Prerequisites
-*.d
+// Include files for required libraries
+#include <stdio.h>
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+#include "opencv_aee.hpp"
+#include "main.hpp"     // You can use this file for declaring defined values and functions
 
-# Precompiled Headers
-*.gch
-*.pch
+void setup(void)
+{
+    /// Setup camera won't work if you don't have a compatible webcam
+    //setupCamera(320, 240);  // Enable the camera for OpenCV
+}
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+int main( int argc, char** argv )
+{
+    setup();    // Call a setup function to prepare IO and devices
 
-# Fortran module files
-*.mod
-*.smod
+    cv::namedWindow("Input Image");   // Create a GUI window called photo
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+    while(1)    // Main loop to perform image processing
+    {
+        Mat Image, Image_HSV, Image_grey;
+        int i = 0;
+        // Can't capture frames without a camera attached. Use static images instead
+        while(Image.empty())
+        {
+            /// Can't capture frames without a camera attached. Use static images instead
+            //frame = captureFrame(); // Capture a frame from the camera and store in a new matrix variable
+            Image = readImage("GreenCar.BMP");
+        }
 
-# Executables
-*.exe
-*.out
-*.app
+        cvtColor(Image, Image_HSV, COLOR_BGR2HSV); // Convert the image to HSV
+
+        inRange(Image_HSV, Scalar(35, 68, 57), Scalar(73, 255, 255),Image_grey );
+
+        int greenpixels = 0;
+        greenpixels = countNonZero(Image_grey);
+
+        inRange(Image_HSV, Scalar(67, 48, 48), Scalar(123, 255, 255),Image_grey);
+
+        int bluepixels = 0;
+        bluepixels = countNonZero(Image_grey);
+
+        inRange(Image_HSV, Scalar(0, 48, 48), Scalar(45, 255, 255),Image_grey );
+
+        int redpixels = 0;
+        redpixels = countNonZero(Image_grey);
+
+        if (redpixels > bluepixels && redpixels > greenpixels)
+        {
+            inRange(Image_HSV, Scalar(0, 48, 48), Scalar(45, 255, 255),Image_grey );
+            cv::imshow("Input Image", Image_grey); //Display the image in the window
+            std::cout << "The object is red" << std::endl;
+        }
+        else if (bluepixels > greenpixels && bluepixels > redpixels)
+        {
+            inRange(Image_HSV, Scalar(67, 48, 48), Scalar(123, 255, 255),Image_grey);
+            cv::imshow("Input Image", Image_grey); //Display the image in the window
+            std::cout << "The object is blue"<< std::endl;
+        }
+        else if (greenpixels > bluepixels && greenpixels > redpixels)
+        {
+            inRange(Image_HSV, Scalar(35, 68, 57), Scalar(73, 255, 255),Image_grey );
+            cv::imshow("Input Image", Image_grey); //Display the image in the window
+            std::cout << "The object is green"<< std::endl;
+        }
+
+
+        int key = cv::waitKey(1);   // Wait 1ms for a keypress (required to update windows)
+
+        key = (key==255) ? -1 : key;    // Check if the ESC key has been pressed
+        if (key == 27)
+            break;
+    }
+
+    closeCV();  // Disable the camera and close any windows
+
+    return 0;
+}
+
+
+
